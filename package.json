@@ -1,36 +1,37 @@
 {
-  "name": "gst-mcp",
+  "name": "india-mcp",
   "version": "0.1.0",
-  "description": "MCP server for Indian GSTIN verification and validation. Lets Claude and other AI tools look up any GSTIN (legal name, status, tax jurisdiction, FSSAI, plant addresses) and validate GSTINs locally.",
-  "type": "module",
+  "private": true,
+  "description": "A monorepo of MCP servers for Indian data: GSTIN, PIN code, company lookups, PAN validation, IRCTC trains, and UPI. Each package is a standalone Model Context Protocol server for Claude and other MCP clients.",
   "license": "MIT",
   "keywords": [
     "mcp",
     "model-context-protocol",
-    "gst",
-    "gstin",
     "india",
-    "gstn",
-    "tax",
-    "indian-gst"
+    "indian-data",
+    "gst",
+    "pincode",
+    "pan",
+    "irctc",
+    "upi"
   ],
   "engines": {
     "node": ">=18"
   },
-  "bin": {
-    "gst-mcp": "./dist/server.js"
-  },
-  "files": [
-    "dist"
+  "workspaces": [
+    "gst-mcp",
+    "pincode-mcp",
+    "companies-mcp",
+    "pan-mcp",
+    "irctc-mcp",
+    "upi-mcp"
   ],
   "scripts": {
-    "start": "node dist/server.js",
-    "build": "node scripts/build.mjs",
-    "dev": "node server.js",
-    "test": "node scripts/test.mjs"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "dotenv": "^16.6.1"
+    "gst-mcp": "npm --prefix gst-mcp",
+    "pincode-mcp": "npm --prefix pincode-mcp",
+    "companies-mcp": "npm --prefix companies-mcp",
+    "pan-mcp": "npm --prefix pan-mcp",
+    "irctc-mcp": "npm --prefix irctc-mcp",
+    "upi-mcp": "npm --prefix upi-mcp"
   }
 }

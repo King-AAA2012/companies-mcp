@@ -1,150 +1,102 @@
-# gst-mcp
+# india-mcp
 
-A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server for **Indian GSTIN data**. It lets Claude Code, Claude Desktop, Cline, and any other MCP client validate and look up Indian GST Identification Numbers (GSTINs).
+A monorepo of **MCP (Model Context Protocol) servers for Indian data**. Each package is a standalone MCP server that lets Claude Desktop, Claude Code, and any other MCP client query Indian data — GSTIN details, PIN codes, company records, PAN validation, IRCTC train info, and UPI handles.
 
-A GSTIN is the 15-character tax ID used for India's Goods and Services Tax — e.g. `27AAACR5055K1Z7`. This server fills a real gap: there are few MCP servers for Indian data, and GSTIN verification is high-intent for AI coding and research agents.
+The goal is to be the one-stop shop for India-focused MCP servers: useful, low-competition, and easy to drop into any MCP client.
 
-## What it does
+## What is MCP?
 
-Three tools:
+MCP is an open protocol (by Anthropic) that lets AI applications connect to external data sources and tools through a standard interface. An MCP server exposes a set of **tools**; an MCP **client** (like Claude Desktop) connects to the server and calls those tools. This repo ships one server per topic, each as its own installable package.
 
-| Tool | Description | Needs API key? |
-| --- | --- | --- |
-| `validate_gstin` | Pure local format + checksum validation. Works offline, no key. | No |
-| `gst_lookup` | Live lookup: legal name, registration status, tax jurisdiction, FSSAI license, and registered plant addresses. | Yes (`GSTINAPI_KEY`) |
-| `gst_bulk` | Validate and resolve many GSTINs in a single call. | Yes (`GSTINAPI_KEY`) |
+## Packages
 
-`validate_gstin` is fully offline — it checks the GSTIN structure and its modulus-36 check digit with no network call, so it always works. `gst_lookup` and `gst_bulk` fetch live registration data from [gstinapi.com](https://gstinapi.com).
+| Package | Tool(s) | Data source | Auth |
+|---|---|---|---|
+| [`gst-mcp`](./gst-mcp) | `gst_lookup`, `gst_bulk`, `validate_gstin` | gstinapi.com (live) + local validator | Optional `GSTINAPI_KEY` |
+| [`pincode-mcp`](./pincode-mcp) | `pincode_lookup` | api.dharun.dev | None |
+| [`companies-mcp`](./companies-mcp) | `company_search` | api.dharun.dev | None |
+| [`pan-mcp`](./pan-mcp) | `pan_validate` | Local format validation | None |
+| [`irctc-mcp`](./irctc-mcp) | `station_lookup` (+ optional train/PNR) | Local station dataset / public API | None |
+| [`upi-mcp`](./upi-mcp) | `upi_handle_verify` | Local format validation | None |
+
+Each package lives in its own folder and is fully self-contained (own `package.json`, `README.md`, tests).
 
 ## Quick start
 
+Requires **Node.js 18+**.
+
 ```bash
+# From the repo root
+cd gst-mcp
 npm install
-npm start
+node server.js
 ```
 
-That starts the server on stdio (the default transport, recommended for local use). Point your MCP client at it:
+Each package runs the same way: `cd <package> && npm install && node server.js`.
+
+## Using with an MCP client
+
+Add a server entry to your MCP client's config. Example for `pincode-mcp`:
 
 ```json
 {
-  "mcpServers": {
-    "gst": {
+  "servers": {
+    "india-pincode": {
       "command": "node",
-      "args": ["C:/Users/Aditya Shah/Desktop/Code/gst-mcp/server.js"]
+      "args": ["C:/Users/Aditya Shah/Desktop/Code/india-mcp/pincode-mcp/server.js"]
     }
   }
 }
 ```
 
-> Tip: on Windows, write the absolute path with forward slashes (`C:/...`) or quote it.
+Replace the path with the package you want. You can register multiple servers in the same config file.
 
-### Using it in Claude Code / Claude Desktop
+## Tools
 
-Once connected, you can ask things like:
+### `gst_lookup` (gst-mcp)
+Look up any GSTIN: legal name, registration status, tax jurisdiction (state, district), FSSAI license, and registered plant addresses.
 
-- *"Is `27AAACR5055K1Z7` a valid GSTIN?"* → uses `validate_gstin`
-- *"What's the legal name and jurisdiction for `29AAACI1195H1ZI`?"* → uses `gst_lookup`
+### `gst_bulk` (gst-mcp)
+Validate and resolve many GSTINs in a single call.
 
-## Live data (gst_lookup / gst_bulk)
+### `validate_gstin` (gst-mcp)
+Pure local GSTIN format + checksum validation — no API key, no network needed.
 
-Live lookups need a free `GSTINAPI_KEY` from [gstinapi.com](https://gstinapi.com) (free tier: 75 lookups/day, no credit card).
+### `pincode_lookup` (pincode-mcp)
+Return the post office(s), block, district, and state for a 6-digit PIN code.
 
-1. Get a key at https://gstinapi.com.
-2. Create a `.env` file in this folder:
+### `company_search` (companies-mcp)
+Search Indian companies by name; returns name, CIN, address, and status.
 
-   ```bash
-   cp .env.example .env
-   ```
+### `pan_validate` (pan-mcp)
+Validate an Indian PAN (Permanent Account Number) format locally.
 
-3. Edit `.env` and paste your key:
+### `station_lookup` (irctc-mcp)
+Look up an Indian railway station by code or name.
 
-   ```dotenv
-   GSTINAPI_KEY=your-key-here
-   ```
-
-4. Restart the server. Without a key, `validate_gstin` still works, but `gst_lookup` and `gst_bulk` return a clear "key not set" error.
-
-## Examples
-
-### validate_gstin
-
-```json
-{ "name": "validate_gstin", "arguments": { "gstin": "27AAACR5055K1Z7" } }
-```
-
-```json
-{
-  "valid": true,
-  "parsed": {
-    "gstin": "27AAACR5055K1Z7",
-    "stateCode": "27",
-    "stateName": "Maharashtra",
-    "pan": "AAACR5055K",
-    "entityCode": "1",
-    "checkChar": "7"
-  }
-}
-```
-
-The validator is strict: it rejects wrong lengths, non-alphanumeric input, unissued state codes (e.g. `00`), a `0` entity code, a non-`Z` reserved position, and a bad check digit. It also normalizes input — lowercase and punctuation like `27-AAACR-5055K1Z7` are accepted.
-
-### gst_lookup
-
-```json
-{ "name": "gst_lookup", "arguments": { "gstin": "29AAACI1195H1ZI" } }
-```
-
-Returns the taxpayer record from gstinapi.com: legal name, status, jurisdiction, FSSAI license number, and registered addresses.
-
-### gst_bulk
-
-```json
-{ "name": "gst_bulk", "arguments": { "gstins": ["27AAACR5055K1Z7", "29AAACI1195H1ZI"] } }
-```
-
-Validates and resolves each GSTIN, returning per-GSTIN results.
-
-## How the validator works
-
-A GSTIN has the structure `SS AAAAA9999Z C`:
-
-```
-SS  State code (two digits, 01–38, plus 96/97/99)
-AAAAA5 digits
-9999  4 digits
-Z     reserved position, always the letter "Z"
-C     modulus-36 check digit
-```
-
-- **State code** — mapped to a state name using the authoritative GSTIN state-code table (the same table shipped in the `@dlminds/gstin-api` package). Codes `96`/`97`/`99` are non-geographic (foreign territory / UT / centre jurisdiction).
-- **PAN** — characters 3–12 must be 5 letters, 4 digits, 1 letter.
-- **Check digit** — computed with the official modulus-36 Luhn variant. See https://gstinapi.com/blog/gstin-checksum-algorithm.
+### `upi_handle_verify` (upi-mcp)
+Verify the format of a UPI ID (VPA) such as `name@paytm`.
 
 ## Development
 
+Each package includes a test script:
+
 ```bash
-npm test          # 15 unit tests for the validator
-npm run verify    # format-check script (also runs the validator cases)
-npm start         # run the MCP server on stdio
+cd <package>
+npm test
 ```
 
-The tests cover format rules, the check-digit algorithm, lowercase/punctuation normalization, and the state-code map.
+## Adding more
 
-## Project layout
-
-```
-gst-mcp/
-├── server.js            # MCP server: tool handlers + transport
-├── lib/
-│   └── gstin.js         # Offline validation + live lookup
-├── scripts/
-│   ├── test.mjs         # Unit tests (npm test)
-│   ├── verify.mjs       # Format checks (npm run verify)
-│   └── boot-check.mjs   # Boot probe (optional)
-├── .env.example         # Env vars (copy to .env for live lookups)
-└── package.json
-```
+New Indian-data MCPs are added as new folders under the repo root, each with its own `package.json`. This repo uses npm workspaces, so the root `package.json` lists every package under `workspaces`.
 
 ## Data source & licensing
 
-Live data is provided by [gstinapi.com](https://gstinapi.com) under its free tier. The offline validator uses the official GSTIN state-code table and checksum algorithm. This project is licensed MIT.
+- **gst-mcp** uses [gstinapi.com](https://gstinapi.com) for live data (free tier, 75 lookups/day without a key). The local validator needs no key.
+- **pincode-mcp** and **companies-mcp** use [api.dharun.dev](https://api.dharun.dev) (free, no key, public data).
+- **pan-mcp** and **upi-mcp** do local format validation only (no external service).
+- **irctc-mcp** uses a local station dataset; see its README for details on any live data.
+
+All data is provided "as is" by the respective providers. Use it responsibly and in accordance with each provider's terms.
+
+This repo is open source under the [MIT License](./LICENSE).
