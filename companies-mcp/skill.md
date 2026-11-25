@@ -19,7 +19,7 @@ Indian data.
 
 ## Requirements
 - **Node.js 18+
-No API key is required â€” the package works fully offline.
+- **Internet connection required.** `company_search` hits the free, keyless [api.dharun.dev](https://api.dharun.dev) index of Indian listed companies. No API key, no sign-up.
 
 ## How to Install / Run
 
