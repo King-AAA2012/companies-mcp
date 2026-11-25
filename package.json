@@ -24,7 +24,10 @@
     "companies-mcp",
     "pan-mcp",
     "irctc-mcp",
-    "upi-mcp"
+    "upi-mcp",
+    "election-mcp",
+    "holidays-mcp",
+    "rto-mcp"
   ],
   "scripts": {
     "gst-mcp": "npm --prefix gst-mcp",
@@ -32,6 +35,9 @@
     "companies-mcp": "npm --prefix companies-mcp",
     "pan-mcp": "npm --prefix pan-mcp",
     "irctc-mcp": "npm --prefix irctc-mcp",
-    "upi-mcp": "npm --prefix upi-mcp"
+    "upi-mcp": "npm --prefix upi-mcp",
+    "election-mcp": "npm --prefix election-mcp",
+    "holidays-mcp": "npm --prefix holidays-mcp",
+    "rto-mcp": "npm --prefix rto-mcp"
   }
 }

@@ -18,6 +18,9 @@ MCP is an open protocol (by Anthropic) that lets AI applications connect to exte
 | [`pan-mcp`](./pan-mcp) | `pan_validate` | Local format validation | None |
 | [`irctc-mcp`](./irctc-mcp) | `station_lookup` (+ optional train/PNR) | Local station dataset / public API | None |
 | [`upi-mcp`](./upi-mcp) | `upi_handle_verify` | Local format validation | None |
+| [`election-mcp`](./election-mcp) | `voter_lookup`, `polling_place_lookup` | Local voter-roll sample data | None |
+| [`holidays-mcp`](./holidays-mcp) | `holidays`, `holiday_types` | Local Indian-holidays dataset | None |
+| [`rto-mcp`](./rto-mcp) | `rto_lookup`, `rto_by_state`, `vehicle_info`, `decode_registration` | Local RTO + vehicle dataset | None |
 
 Each package lives in its own folder and is fully self-contained (own `package.json`, `README.md`, tests).
 
@@ -76,6 +79,30 @@ Look up an Indian railway station by code or name.
 
 ### `upi_handle_verify` (upi-mcp)
 Verify the format of a UPI ID (VPA) such as `name@paytm`.
+
+### `voter_lookup` (election-mcp)
+Look up an Indian elector by name or EPIC voter ID from a sample electoral-roll dataset.
+
+### `polling_place_lookup` (election-mcp)
+Find the polling station for a given PIN code or assembly constituency.
+
+### `holidays` (holidays-mcp)
+List Indian national, state, and festival holidays for a year (optionally filtered by state or category).
+
+### `holiday_types` (holidays-mcp)
+Return the distinct categories of holidays observed in a year.
+
+### `rto_lookup` (rto-mcp)
+Look up the RTO office for a vehicle registration number.
+
+### `rto_by_state` (rto-mcp)
+List RTO offices in a state.
+
+### `vehicle_info` (rto-mcp)
+Return sample vehicle details registered with a given RTO.
+
+### `decode_registration` (rto-mcp)
+Decode an Indian vehicle registration number into state, RTO, series, and serial components.
 
 ## Development
 
