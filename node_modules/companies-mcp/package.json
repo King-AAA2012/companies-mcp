@@ -1,0 +1,34 @@
+{
+  "name": "companies-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for searching Indian (listed) companies by name, ticker, sector or industry. Lets Claude and other AI tools look up company names, NSE tickers, sectors, industries, ISINs and market caps.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "india",
+    "indian-companies",
+    "companies",
+    "stock",
+    "nistocks",
+    "search"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "companies-mcp": "./server.js"
+  },
+  "files": [
+    "server.js"
+  ],
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node scripts/test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
